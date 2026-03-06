@@ -14,6 +14,8 @@ Browser-based archery physics simulation built with HTML, Tailwind CSS, and modu
 - Target board with ring scoring
 - Wind indicator UI
 - Power bar UI
+- User behavior logging (`name`, `email`, `log`) to Google Apps Script + Google Sheet
+- Automatic log upload every 60 seconds
 - Canvas animation loop with `requestAnimationFrame`
 
 ## Tech Stack
@@ -30,6 +32,8 @@ Browser-based archery physics simulation built with HTML, Tailwind CSS, and modu
 |- index.html
 |- vercel.json
 |- README.md
+|- api/
+   |- log.js
 |- src/
    |- styles.css
    |- js/
@@ -39,6 +43,7 @@ Browser-based archery physics simulation built with HTML, Tailwind CSS, and modu
       |- wind.js
       |- target.js
       |- arrow.js
+      |- logService.js
       |- renderer.js
 ```
 
@@ -60,11 +65,21 @@ Open `http://localhost:5173`.
 npx serve .
 ```
 
+### Option 3: Vercel local runtime (recommended for log API)
+
+```bash
+vercel dev
+```
+
+This runs both static frontend and `/api/log` locally.
+
 ## Deploy to Vercel
 
 1. Push this repository to GitHub.
 2. In Vercel, click **Add New Project** and import the GitHub repo.
-3. Keep defaults (Framework Preset: `Other`).
-4. Deploy.
+3. In Project Settings -> Environment Variables, add:
+   - `GAS_URL` = your deployed Google Apps Script Web App URL
+4. Keep defaults (Framework Preset: `Other`).
+5. Deploy.
 
-Because this is a static site, no build step is required.
+The frontend posts logs to `/api/log`, and Vercel serverless forwards data to your GAS `doPost` endpoint using `GAS_URL`.

@@ -1,5 +1,6 @@
 ﻿import { Arrow } from "./arrow.js";
 import { CONFIG } from "./config.js";
+import { LogService } from "./logService.js";
 import { drawScene } from "./renderer.js";
 import { TargetBoard } from "./target.js";
 import { clamp, formatSigned } from "./utils.js";
@@ -21,6 +22,8 @@ const startForm = document.getElementById("startForm");
 const usernameInput = document.getElementById("usernameInput");
 const emailInput = document.getElementById("emailInput");
 const startError = document.getElementById("startError");
+const logSyncStatus = document.getElementById("logSyncStatus");
+const logSyncMeta = document.getElementById("logSyncMeta");
 
 const state = {
   canvasSize: { width: 1280, height: 720 },
@@ -41,8 +44,10 @@ const state = {
 };
 
 state.target = new TargetBoard(() => state.canvasSize);
+const logService = new LogService(() => state.player);
 
 let previousTs = performance.now();
+let logIntervalId = null;
 
 function resizeCanvas() {
   const container = canvas.parentElement;
@@ -94,6 +99,65 @@ function updatePlayerUI() {
   playerEmail.textContent = state.player.email || "-";
 }
 
+function updateLogSyncUI(status, meta) {
+  logSyncStatus.textContent = status;
+  if (meta) {
+    logSyncMeta.textContent = meta;
+  }
+}
+
+function addBehaviorLog(eventName, details = "") {
+  if (!state.isSessionStarted) {
+    return;
+  }
+
+  logService.add(eventName, details);
+  updateLogSyncUI("Pending upload", `${logService.pendingCount} log item(s) queued`);
+}
+
+function startLogUploader() {
+  if (logIntervalId !== null) {
+    clearInterval(logIntervalId);
+  }
+
+  logIntervalId = setInterval(() => {
+    flushLogs("auto");
+  }, 60000);
+}
+
+async function flushLogs(trigger) {
+  if (!state.isSessionStarted) {
+    return;
+  }
+
+  if (logService.pendingCount === 0) {
+    const last = logService.lastSyncAt
+      ? `Last sync: ${logService.lastSyncAt.toLocaleTimeString()}`
+      : "No logs yet";
+    updateLogSyncUI("Up to date", last);
+    return;
+  }
+
+  updateLogSyncUI("Uploading...", `${logService.pendingCount} log item(s) queued`);
+
+  try {
+    const result = await logService.flush();
+    if (result.ok) {
+      const when = logService.lastSyncAt
+        ? logService.lastSyncAt.toLocaleTimeString()
+        : "just now";
+      updateLogSyncUI("Upload success", `Last sync: ${when}`);
+      return;
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload failed";
+    updateLogSyncUI("Upload failed", `${message} | Trigger: ${trigger}`);
+    return;
+  }
+
+  updateLogSyncUI("Upload skipped", `${logService.pendingCount} log item(s) queued`);
+}
+
 function beginCharge(ts) {
   if (!state.isSessionStarted) {
     return;
@@ -101,6 +165,7 @@ function beginCharge(ts) {
 
   state.isCharging = true;
   state.chargeStartTs = ts;
+  addBehaviorLog("charge_start");
 }
 
 function releaseShot() {
@@ -122,6 +187,7 @@ function releaseShot() {
   };
 
   state.arrows.push(new Arrow({ x: state.bow.x, y: state.bow.y }, velocity));
+  addBehaviorLog("shot_release", `power=${state.currentPower.toFixed(2)} speed=${speed.toFixed(1)}`);
   state.currentPower = 0;
   updatePowerUI();
 }
@@ -153,6 +219,7 @@ function stepSimulation(dt) {
 
     if (isOutOfBounds) {
       arrow.isActive = false;
+      addBehaviorLog("shot_end", "out_of_bounds");
       continue;
     }
 
@@ -162,6 +229,7 @@ function stepSimulation(dt) {
       arrow.isActive = false;
       state.score += score;
       updateScoreUI();
+      addBehaviorLog("target_hit", `score=${score} total=${state.score}`);
     }
   }
 
@@ -217,6 +285,10 @@ startForm.addEventListener("submit", (e) => {
   startError.textContent = "";
   startOverlay.classList.add("hidden");
   updatePlayerUI();
+  updateLogSyncUI("Logging active", "Uploads every 60 seconds");
+  addBehaviorLog("session_start", "Simulation started");
+  startLogUploader();
+  flushLogs("session_start");
   previousTs = performance.now();
 });
 
@@ -237,9 +309,25 @@ window.addEventListener("resize", () => {
   resizeCanvas();
 });
 
+window.addEventListener("beforeunload", () => {
+  if (!state.isSessionStarted || logService.pendingCount === 0) {
+    return;
+  }
+
+  const payload = {
+    name: state.player.username,
+    email: state.player.email,
+    log: logService.queue.join("\n")
+  };
+
+  const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+  navigator.sendBeacon("/api/log", blob);
+});
+
 resizeCanvas();
 updatePowerUI();
 updateWindUI();
 updateScoreUI();
 updatePlayerUI();
+updateLogSyncUI("Waiting to start", "Uploads every 60 seconds");
 requestAnimationFrame(frame);
