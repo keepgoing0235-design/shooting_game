@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ï»¿<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -8,6 +8,44 @@
     <link rel="stylesheet" href="./src/styles.css" />
   </head>
   <body class="min-h-screen bg-slate-950 text-slate-100 selection:bg-emerald-300 selection:text-slate-900">
+    <div id="startOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-4">
+      <form id="startForm" class="w-full max-w-md rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-2xl shadow-black/40">
+        <h2 class="text-xl font-semibold">Enter Player Details</h2>
+        <p class="mt-1 text-sm text-slate-300">You must enter username and email before starting.</p>
+
+        <label for="usernameInput" class="mt-4 block text-sm text-slate-200">Username</label>
+        <input
+          id="usernameInput"
+          name="username"
+          type="text"
+          required
+          minlength="2"
+          maxlength="32"
+          class="mt-1 w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 outline-none ring-emerald-400 focus:ring-2"
+          placeholder="Your username"
+        />
+
+        <label for="emailInput" class="mt-4 block text-sm text-slate-200">Email</label>
+        <input
+          id="emailInput"
+          name="email"
+          type="email"
+          required
+          class="mt-1 w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 outline-none ring-emerald-400 focus:ring-2"
+          placeholder="you@example.com"
+        />
+
+        <p id="startError" class="mt-3 min-h-5 text-sm text-rose-300"></p>
+
+        <button
+          type="submit"
+          class="mt-2 inline-flex w-full items-center justify-center rounded-lg bg-emerald-500 px-4 py-2 font-semibold text-slate-950 transition hover:bg-emerald-400"
+        >
+          Start Simulation
+        </button>
+      </form>
+    </div>
+
     <main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col p-4 sm:p-6">
       <header class="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h1 class="text-xl font-bold tracking-tight sm:text-2xl">Archery Physics Simulation</h1>
@@ -23,6 +61,12 @@
           <div>
             <div class="mb-1 text-xs uppercase tracking-wide text-slate-400">Score</div>
             <div id="scoreValue" class="text-3xl font-semibold">0</div>
+          </div>
+
+          <div class="rounded-lg border border-slate-700 bg-slate-800/60 p-3">
+            <div class="text-xs uppercase tracking-wide text-slate-400">Player</div>
+            <div id="playerName" class="mt-1 text-sm font-medium text-slate-100">-</div>
+            <div id="playerEmail" class="text-xs text-slate-300">-</div>
           </div>
 
           <div>
@@ -41,7 +85,7 @@
               <div id="windLabel" class="text-xs text-sky-300">0.0</div>
             </div>
             <div class="wind-pill flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800/80 px-3 py-2">
-              <span id="windArrow" class="inline-block text-lg leading-none">¡÷</span>
+              <span id="windArrow" class="inline-block text-lg leading-none">â†’</span>
               <span class="text-sm text-slate-300">Horizontal acceleration</span>
             </div>
             <p id="windTimer" class="mt-2 text-xs text-slate-400">Next wind shift in 0.0s</p>

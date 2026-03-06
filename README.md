@@ -1,9 +1,10 @@
-# Archery Physics Simulation
+﻿# Archery Physics Simulation
 
 Browser-based archery physics simulation built with HTML, Tailwind CSS, and modular JavaScript Canvas.
 
 ## Features
 
+- Start screen requiring username and email
 - Aim with mouse
 - Hold mouse to charge shot
 - Release to shoot arrow

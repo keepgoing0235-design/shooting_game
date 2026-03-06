@@ -1,4 +1,4 @@
-import { Arrow } from "./arrow.js";
+ï»¿import { Arrow } from "./arrow.js";
 import { CONFIG } from "./config.js";
 import { drawScene } from "./renderer.js";
 import { TargetBoard } from "./target.js";
@@ -14,6 +14,13 @@ const powerLabel = document.getElementById("powerLabel");
 const windLabel = document.getElementById("windLabel");
 const windArrow = document.getElementById("windArrow");
 const windTimer = document.getElementById("windTimer");
+const playerName = document.getElementById("playerName");
+const playerEmail = document.getElementById("playerEmail");
+const startOverlay = document.getElementById("startOverlay");
+const startForm = document.getElementById("startForm");
+const usernameInput = document.getElementById("usernameInput");
+const emailInput = document.getElementById("emailInput");
+const startError = document.getElementById("startError");
 
 const state = {
   canvasSize: { width: 1280, height: 720 },
@@ -25,7 +32,12 @@ const state = {
   chargeStartTs: 0,
   currentPower: 0,
   wind: new WindSystem(),
-  target: null
+  target: null,
+  player: {
+    username: "",
+    email: ""
+  },
+  isSessionStarted: false
 };
 
 state.target = new TargetBoard(() => state.canvasSize);
@@ -68,8 +80,8 @@ function updatePowerUI() {
 
 function updateWindUI() {
   const windAccel = state.wind.currentAccel;
-  windLabel.textContent = `${formatSigned(windAccel)} px/s2`;
-  windArrow.textContent = windAccel >= 0 ? "¡÷" : "¡ö";
+  windLabel.textContent = `${formatSigned(windAccel)} px/sÂ²`;
+  windArrow.textContent = windAccel >= 0 ? "â†’" : "â†";
   windTimer.textContent = `Next wind shift in ${Math.max(0, state.wind.timeUntilShift).toFixed(1)}s`;
 }
 
@@ -77,13 +89,22 @@ function updateScoreUI() {
   scoreValue.textContent = String(state.score);
 }
 
+function updatePlayerUI() {
+  playerName.textContent = state.player.username || "-";
+  playerEmail.textContent = state.player.email || "-";
+}
+
 function beginCharge(ts) {
+  if (!state.isSessionStarted) {
+    return;
+  }
+
   state.isCharging = true;
   state.chargeStartTs = ts;
 }
 
 function releaseShot() {
-  if (!state.isCharging) {
+  if (!state.isSessionStarted || !state.isCharging) {
     return;
   }
 
@@ -106,7 +127,7 @@ function releaseShot() {
 }
 
 function updateCharging(nowTs) {
-  if (!state.isCharging) {
+  if (!state.isSessionStarted || !state.isCharging) {
     return;
   }
 
@@ -151,9 +172,11 @@ function frame(ts) {
   const dt = Math.min((ts - previousTs) / 1000, 0.033);
   previousTs = ts;
 
-  updateCharging(ts);
-  stepSimulation(dt);
-  updateWindUI();
+  if (state.isSessionStarted) {
+    updateCharging(ts);
+    stepSimulation(dt);
+    updateWindUI();
+  }
 
   drawScene(ctx, {
     canvasSize: state.canvasSize,
@@ -167,6 +190,35 @@ function frame(ts) {
 
   requestAnimationFrame(frame);
 }
+
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+startForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const username = usernameInput.value.trim();
+  const email = emailInput.value.trim();
+
+  if (username.length < 2) {
+    startError.textContent = "Username must be at least 2 characters.";
+    return;
+  }
+
+  if (!isValidEmail(email)) {
+    startError.textContent = "Please enter a valid email address.";
+    return;
+  }
+
+  state.player.username = username;
+  state.player.email = email;
+  state.isSessionStarted = true;
+  startError.textContent = "";
+  startOverlay.classList.add("hidden");
+  updatePlayerUI();
+  previousTs = performance.now();
+});
 
 canvas.addEventListener("mousemove", (e) => {
   setMousePosition(e);
@@ -189,4 +241,5 @@ resizeCanvas();
 updatePowerUI();
 updateWindUI();
 updateScoreUI();
+updatePlayerUI();
 requestAnimationFrame(frame);
