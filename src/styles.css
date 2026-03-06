@@ -1,0 +1,15 @@
+:root {
+  color-scheme: dark;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#gameCanvas {
+  aspect-ratio: 16 / 9;
+}
+
+.wind-pill {
+  backdrop-filter: blur(3px);
+}

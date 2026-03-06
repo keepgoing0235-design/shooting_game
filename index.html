@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Archery Physics Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-100 selection:bg-emerald-300 selection:text-slate-900">
+    <main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col p-4 sm:p-6">
+      <header class="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h1 class="text-xl font-bold tracking-tight sm:text-2xl">Archery Physics Simulation</h1>
+        <div class="text-sm text-slate-300">Mouse to aim, hold to charge, release to fire</div>
+      </header>
+
+      <section class="grid gap-4 md:grid-cols-[1fr_260px]">
+        <div class="rounded-xl border border-slate-800 bg-slate-900/60 p-2 shadow-lg shadow-slate-950/40">
+          <canvas id="gameCanvas" class="h-auto w-full rounded-lg bg-slate-900"></canvas>
+        </div>
+
+        <aside class="space-y-4 rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+          <div>
+            <div class="mb-1 text-xs uppercase tracking-wide text-slate-400">Score</div>
+            <div id="scoreValue" class="text-3xl font-semibold">0</div>
+          </div>
+
+          <div>
+            <div class="mb-2 flex items-center justify-between">
+              <div class="text-xs uppercase tracking-wide text-slate-400">Shot Power</div>
+              <div id="powerLabel" class="text-xs text-emerald-300">0%</div>
+            </div>
+            <div class="h-3 overflow-hidden rounded-full bg-slate-800">
+              <div id="powerFill" class="h-full w-0 bg-gradient-to-r from-emerald-400 to-lime-300 transition-[width] duration-75"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="mb-2 flex items-center justify-between">
+              <div class="text-xs uppercase tracking-wide text-slate-400">Wind</div>
+              <div id="windLabel" class="text-xs text-sky-300">0.0</div>
+            </div>
+            <div class="wind-pill flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800/80 px-3 py-2">
+              <span id="windArrow" class="inline-block text-lg leading-none">¡÷</span>
+              <span class="text-sm text-slate-300">Horizontal acceleration</span>
+            </div>
+            <p id="windTimer" class="mt-2 text-xs text-slate-400">Next wind shift in 0.0s</p>
+          </div>
+
+          <div class="rounded-lg border border-slate-700 bg-slate-800/70 p-3 text-xs text-slate-300">
+            <p>Scoring rings: 10, 8, 6, 4, 2 points from center outward.</p>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script type="module" src="./src/js/main.js"></script>
+  </body>
+</html>
